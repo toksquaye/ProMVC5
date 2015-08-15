@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Mvc;
 using EssentialTools.Models;
 using Ninject;
+using Ninject.Web.Common;
 
 namespace EssentialTools.Infracstructure
 {
@@ -34,7 +35,14 @@ namespace EssentialTools.Infracstructure
 
         private void AddBindings()
         {
-            kernel.Bind<IValueCalculator>().To<LinqValueCalculator>();
+            //inrequestscope creates only 1 instance of object for each HTTP request
+            kernel.Bind<IValueCalculator>().To<LinqValueCalculator>().InRequestScope();
+            kernel.Bind<IDiscountHelper>()
+                //              .To<DefaultDiscountHelper>().WithPropertyValue("DiscountSize", 50M);
+                .To<DefaultDiscountHelper>().WithConstructorArgument("discountParam", 50M);
+            //this binding tells ninject kernel to use FlexibleDiscountHelper object  when it is createring a LinqValueCalculatoer object
+            kernel.Bind<IDiscountHelper>().To<FlexibleDiscountHelper>()
+                .WhenInjectedInto<LinqValueCalculator>();
         }
     }
 }
